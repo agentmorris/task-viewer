@@ -27,9 +27,7 @@ https://yourserver.com/task-viewer/?file=https://raw.githubusercontent.com/user/
 
 For example:
 
-```
-https://dmorris.net/task-viewer/?file=https://raw.githubusercontent.com/agentmorris/MegaDetector/refs/heads/main/TODO.md
-```
+<https://dmorris.net/task-viewer/?file=https://raw.githubusercontent.com/agentmorris/MegaDetector/refs/heads/main/TODO.md>
 
 
 ## Features
