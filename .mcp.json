@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "/mnt/c/git/MegaDetector"],
+      "env": {}
+    }
+  },
+  "mcpServers": {
+    "puppeteer": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-puppeteer"],
+      "env": {}
+    }
+  }
+}
+

@@ -8,13 +8,13 @@ A web-based interface for visualizing tasks in a structured markdown format.
 
 1. Start a local web server in the parent directory:
    ```bash
-   cd ..
+   cd ~/git/task-viewer
    python -m http.server 8000
    ```
 
 2. Open in browser with a file parameter:
    ```
-   http://localhost:8000/task-viewer/?file=TODO.md
+   http://localhost:8000/?file=well-formatted-example.md
    ```
 
 ### Production use with GitHub

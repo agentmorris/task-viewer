@@ -316,6 +316,56 @@
             margin-bottom: 20px;
         }
 
+        .parsing-issues {
+            background: #fffbf0;
+            border: 1px solid #fbbf24;
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .parsing-issues h2 {
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            color: var(--warning-orange);
+        }
+
+        .parsing-issue-item {
+            background: #ffffff;
+            border: 1px solid #f59e0b;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .parsing-issue-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .parsing-issue-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .parsing-issue-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .parsing-issue-list li {
+            color: var(--warning-orange);
+            margin-bottom: 4px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .parsing-issue-list li::before {
+            content: "⚠";
+            position: absolute;
+            left: 0;
+        }
+
         @media (max-width: 768px) {
             .control-row {
                 flex-direction: column;
@@ -335,6 +385,11 @@
         <div class="file-url" id="fileUrl" style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;"></div>
         
         <div class="header-content" id="headerContent" style="margin-bottom: 20px; display: none;"></div>
+        
+        <div id="parsingIssues" class="parsing-issues hidden" style="margin-bottom: 20px;">
+            <h2>Parsing Issues</h2>
+            <div id="parsingIssuesList"></div>
+        </div>
         
         <div class="controls">
             <div class="control-row">
@@ -398,6 +453,7 @@
                 this.tasks = [];
                 this.filteredTasks = [];
                 this.allTags = new Set();
+                this.parsingIssues = [];
                 this.init();
             }
 
@@ -434,6 +490,7 @@
                     this.tasks = this.parseTasksFromMarkdown(content);
                     this.populateTagFilter();
                     this.filterTasks();
+                    this.renderParsingIssues();
                     this.updateFileUrl(fileUrl);
                     document.getElementById('loadingMessage').style.display = 'none';
                 } catch (error) {
@@ -486,10 +543,16 @@
                     
                     if (!content) continue;
                     
-                    const task = this.parseTask(title, content);
-                    if (task) {
-                        tasks.push(task);
-                        task.tags.forEach(tag => this.allTags.add(tag));
+                    const result = this.parseTask(title, content);
+                    if (result.task) {
+                        tasks.push(result.task);
+                        result.task.tags.forEach(tag => this.allTags.add(tag));
+                    }
+                    if (result.issues.length > 0) {
+                        this.parsingIssues.push({
+                            title: title,
+                            issues: result.issues
+                        });
                     }
                 }
                 
@@ -503,6 +566,7 @@
                 const tags = [];
                 let descriptionLines = [];
                 let inDescription = true;
+                const issues = [];
                 
                 for (const line of lines) {
                     const trimmedLine = line.trim();
@@ -527,19 +591,37 @@
                     }
                 }
                 
-                if (priority === null || effort === null || tags.length === 0) {
-                    console.warn(`Skipping task "${title}" - missing required fields`);
-                    return null;
+                // Check for missing required fields
+                if (priority === null) {
+                    issues.push('Missing priority (P[0-4])');
+                }
+                if (effort === null) {
+                    issues.push('Missing effort (E[0-4])');
+                }
+                if (tags.length === 0) {
+                    issues.push('Missing at least one tag (!tag-name)');
                 }
                 
-                return {
-                    title,
-                    description: descriptionLines.join('\n').trim(),
-                    priority,
-                    effort,
-                    tags,
-                    firstTag: tags[0] || ''
+                // Return both the task (if valid) and any issues
+                const result = {
+                    task: null,
+                    issues: issues
                 };
+                
+                if (issues.length === 0) {
+                    result.task = {
+                        title,
+                        description: descriptionLines.join('\n').trim(),
+                        priority,
+                        effort,
+                        tags,
+                        firstTag: tags[0] || ''
+                    };
+                } else {
+                    console.warn(`Task "${title}" has parsing issues:`, issues);
+                }
+                
+                return result;
             }
 
             populateTagFilter() {
@@ -624,6 +706,35 @@
 
             toggleDescriptions() {
                 this.renderTasks();
+            }
+
+            renderParsingIssues() {
+                const parsingIssuesDiv = document.getElementById('parsingIssues');
+                const parsingIssuesList = document.getElementById('parsingIssuesList');
+                
+                if (this.parsingIssues.length === 0) {
+                    parsingIssuesDiv.classList.add('hidden');
+                    return;
+                }
+                
+                parsingIssuesDiv.classList.remove('hidden');
+                parsingIssuesList.innerHTML = '';
+                
+                this.parsingIssues.forEach(issue => {
+                    const issueElement = document.createElement('div');
+                    issueElement.className = 'parsing-issue-item';
+                    
+                    const issuesList = issue.issues.map(i => `<li>${this.escapeHtml(i)}</li>`).join('');
+                    
+                    issueElement.innerHTML = `
+                        <div class="parsing-issue-title">${this.escapeHtml(issue.title)}</div>
+                        <ul class="parsing-issue-list">
+                            ${issuesList}
+                        </ul>
+                    `;
+                    
+                    parsingIssuesList.appendChild(issueElement);
+                });
             }
 
             updateStats() {
