@@ -243,6 +243,60 @@
             display: block;
         }
 
+        .header-content {
+            background: var(--bg-gray);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 16px;
+            line-height: 1.6;
+        }
+
+        .header-content h2,
+        .header-content h3,
+        .header-content h4,
+        .header-content h5,
+        .header-content h6 {
+            margin-top: 16px;
+            margin-bottom: 12px;
+        }
+
+        .header-content h2:first-child,
+        .header-content h3:first-child,
+        .header-content h4:first-child,
+        .header-content h5:first-child,
+        .header-content h6:first-child {
+            margin-top: 0;
+        }
+
+        .header-content p {
+            margin-bottom: 12px;
+        }
+
+        .header-content ul,
+        .header-content ol {
+            margin-bottom: 12px;
+            padding-left: 20px;
+        }
+
+        .header-content code {
+            background: #ffffff;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+
+        .header-content pre {
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+
+        .header-content pre code {
+            background: none;
+            padding: 0;
+        }
+
         .hidden {
             display: none;
         }
@@ -279,6 +333,8 @@
     <div class="container">
         <h1>Task Viewer</h1>
         <div class="file-url" id="fileUrl" style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;"></div>
+        
+        <div class="header-content" id="headerContent" style="margin-bottom: 20px; display: none;"></div>
         
         <div class="controls">
             <div class="control-row">
@@ -399,6 +455,15 @@
                     const firstLine = titleContent.split(/[\r\n]/)[0].trim();
                     if (firstLine) {
                         this.updatePageTitle(firstLine);
+                    }
+                }
+                
+                // Find and extract header if present
+                const headerSection = sections.find(section => section.trim().toLowerCase().startsWith('header'));
+                if (headerSection) {
+                    const headerContent = headerSection.replace(/^header\s*[\r\n]+/i, '').trim();
+                    if (headerContent) {
+                        this.updateHeaderContent(headerContent);
                     }
                 }
                 
@@ -582,6 +647,12 @@
             updatePageTitle(title) {
                 document.querySelector('h1').textContent = title;
                 document.title = title;
+            }
+
+            updateHeaderContent(headerMarkdown) {
+                const headerDiv = document.getElementById('headerContent');
+                headerDiv.innerHTML = marked.parse(headerMarkdown);
+                headerDiv.style.display = 'block';
             }
 
             escapeHtml(text) {
