@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Viewer</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+    <style>
+        :root {
+            --primary-blue: #0969da;
+            --border-color: #d1d9e0;
+            --bg-gray: #f6f8fa;
+            --text-primary: #1f2328;
+            --text-secondary: #656d76;
+            --success-green: #1a7f37;
+            --warning-orange: #9a6700;
+            --danger-red: #d1242f;
+            --info-blue: #0969da;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background-color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-bottom: 24px;
+            font-size: 32px;
+            font-weight: 600;
+        }
+
+        .controls {
+            background: var(--bg-gray);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .range-inputs {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        input, select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input[type="number"] {
+            width: 60px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .task-item {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 16px;
+            background: #ffffff;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .task-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-blue);
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 32px;
+        }
+
+        .priority-badge {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        .priority-badge.p1 { background: #c2185b; color: white; }
+        .priority-badge.p2 { background: #06b6d4; color: white; }
+        .priority-badge.p3 { background: #10b981; color: white; }
+        .priority-badge.p4 { background: #9ca3af; color: white; }
+
+        .effort-badge {
+            background: var(--text-secondary);
+            color: white;
+        }
+
+        .tag-badge {
+            background: var(--bg-gray);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .task-description {
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+
+        .task-description h1,
+        .task-description h2,
+        .task-description h3,
+        .task-description h4,
+        .task-description h5,
+        .task-description h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+
+        .task-description h1 { font-size: 24px; }
+        .task-description h2 { font-size: 20px; }
+        .task-description h3 { font-size: 16px; }
+
+        .task-description p {
+            margin-bottom: 16px;
+        }
+
+        .task-description ul,
+        .task-description ol {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+
+        .task-description li {
+            margin-bottom: 4px;
+        }
+
+        .task-description code {
+            background: var(--bg-gray);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+
+        .task-description pre {
+            background: var(--bg-gray);
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+
+        .task-description pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .task-description blockquote {
+            border-left: 4px solid var(--border-color);
+            padding-left: 16px;
+            margin: 16px 0;
+            color: var(--text-secondary);
+        }
+
+        .task-description a {
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+
+        .task-description a:hover {
+            text-decoration: underline;
+        }
+
+        .task-description img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 12px 0;
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .error {
+            background: #fff8f8;
+            border: 1px solid #ffcccb;
+            color: var(--danger-red);
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .control-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .task-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Task Viewer</h1>
+        <div class="file-url" id="fileUrl" style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;"></div>
+        
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <label for="priorityMin">Priority range</label>
+                    <div class="range-inputs">
+                        P<input type="number" id="priorityMin" min="0" max="4" value="0">
+                        to P<input type="number" id="priorityMax" min="0" max="4" value="4">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="effortMin">Effort range</label>
+                    <div class="range-inputs">
+                        E<input type="number" id="effortMin" min="0" max="4" value="0">
+                        to E<input type="number" id="effortMax" min="0" max="4" value="4">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="tagFilter">Filter by tag</label>
+                    <select id="tagFilter">
+                        <option value="">All tags</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="searchBox">Search</label>
+                    <input type="text" id="searchBox" placeholder="Search titles and descriptions...">
+                </div>
+            </div>
+            
+            <div class="control-row">
+                <div class="control-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="hideDescriptions">
+                        <label for="hideDescriptions">Hide descriptions</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <span id="taskCount">Loading...</span>
+        </div>
+        
+        <div id="loadingMessage" class="loading">
+            Loading tasks...
+        </div>
+        
+        <div id="errorMessage" class="error hidden">
+        </div>
+        
+        <div id="taskList" class="task-list">
+        </div>
+    </div>
+
+    <script>
+        class TaskViewer {
+            constructor() {
+                this.tasks = [];
+                this.filteredTasks = [];
+                this.allTags = new Set();
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadTasks();
+            }
+
+            setupEventListeners() {
+                document.getElementById('priorityMin').addEventListener('input', () => this.filterTasks());
+                document.getElementById('priorityMax').addEventListener('input', () => this.filterTasks());
+                document.getElementById('effortMin').addEventListener('input', () => this.filterTasks());
+                document.getElementById('effortMax').addEventListener('input', () => this.filterTasks());
+                document.getElementById('tagFilter').addEventListener('change', () => this.filterTasks());
+                document.getElementById('searchBox').addEventListener('input', () => this.filterTasks());
+                document.getElementById('hideDescriptions').addEventListener('change', () => this.toggleDescriptions());
+            }
+
+            async loadTasks() {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const fileUrl = urlParams.get('file');
+                    
+                    if (!fileUrl) {
+                        throw new Error('No file parameter provided. Usage: ?file=path/to/file.md');
+                    }
+
+                    const response = await fetch(fileUrl);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
+                    }
+
+                    const content = await response.text();
+                    this.tasks = this.parseTasksFromMarkdown(content);
+                    this.populateTagFilter();
+                    this.filterTasks();
+                    this.updateFileUrl(fileUrl);
+                    document.getElementById('loadingMessage').style.display = 'none';
+                } catch (error) {
+                    this.showError(error.message);
+                    document.getElementById('loadingMessage').style.display = 'none';
+                }
+            }
+
+            parseTasksFromMarkdown(content) {
+                const tasks = [];
+                
+                // Split content by level-1 headers
+                const sections = content.split(/^# /m);
+                
+                // Find and extract title if present
+                const titleSection = sections.find(section => section.trim().toLowerCase().startsWith('title'));
+                if (titleSection) {
+                    const titleContent = titleSection.replace(/^title\s*[\r\n]+/i, '').trim();
+                    const firstLine = titleContent.split(/[\r\n]/)[0].trim();
+                    if (firstLine) {
+                        this.updatePageTitle(firstLine);
+                    }
+                }
+                
+                // Find the Issues section
+                const issuesSection = sections.find(section => section.trim().startsWith('Issues'));
+                
+                if (!issuesSection) {
+                    throw new Error('No "# Issues" section found in the markdown file');
+                }
+                
+                // Remove the "Issues" heading and get the content
+                const issuesContent = issuesSection.replace(/^Issues\s*[\r\n]+/, '');
+                
+                // Split by level-2 headers (## Title)
+                const taskSections = issuesContent.split(/^## (.+)$/m).slice(1);
+                
+                for (let i = 0; i < taskSections.length; i += 2) {
+                    const title = taskSections[i].trim();
+                    const content = taskSections[i + 1];
+                    
+                    if (!content) continue;
+                    
+                    const task = this.parseTask(title, content);
+                    if (task) {
+                        tasks.push(task);
+                        task.tags.forEach(tag => this.allTags.add(tag));
+                    }
+                }
+                
+                return tasks;
+            }
+
+            parseTask(title, content) {
+                const lines = content.trim().split('\n');
+                let priority = null;
+                let effort = null;
+                const tags = [];
+                let descriptionLines = [];
+                let inDescription = true;
+                
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    
+                    if (trimmedLine.match(/^P[0-4]$/)) {
+                        priority = parseInt(trimmedLine.substring(1));
+                        inDescription = false;
+                    } else if (trimmedLine.match(/^E[0-4]$/)) {
+                        effort = parseInt(trimmedLine.substring(1));
+                        inDescription = false;
+                    } else if (trimmedLine.match(/^![a-zA-Z0-9\-_\[\]]+$/)) {
+                        const tagMatch = trimmedLine.match(/^!([a-zA-Z0-9\-_]+)/);
+                        if (tagMatch && tagMatch[1] !== 'name' && tagMatch[1] !== 'also-see') {
+                            tags.push(tagMatch[1]);
+                        }
+                        inDescription = false;
+                    } else if (inDescription && trimmedLine) {
+                        descriptionLines.push(line);
+                    } else if (!inDescription && trimmedLine === '') {
+                        // Empty line after metadata, continue
+                        continue;
+                    }
+                }
+                
+                if (priority === null || effort === null || tags.length === 0) {
+                    console.warn(`Skipping task "${title}" - missing required fields`);
+                    return null;
+                }
+                
+                return {
+                    title,
+                    description: descriptionLines.join('\n').trim(),
+                    priority,
+                    effort,
+                    tags,
+                    firstTag: tags[0] || ''
+                };
+            }
+
+            populateTagFilter() {
+                const tagFilter = document.getElementById('tagFilter');
+                const sortedTags = Array.from(this.allTags).sort();
+                
+                // Clear existing options except "All tags"
+                tagFilter.innerHTML = '<option value="">All tags</option>';
+                
+                sortedTags.forEach(tag => {
+                    const option = document.createElement('option');
+                    option.value = tag;
+                    option.textContent = tag;
+                    tagFilter.appendChild(option);
+                });
+            }
+
+            filterTasks() {
+                const priorityMin = parseInt(document.getElementById('priorityMin').value);
+                const priorityMax = parseInt(document.getElementById('priorityMax').value);
+                const effortMin = parseInt(document.getElementById('effortMin').value);
+                const effortMax = parseInt(document.getElementById('effortMax').value);
+                const selectedTag = document.getElementById('tagFilter').value;
+                const searchTerm = document.getElementById('searchBox').value.toLowerCase().trim();
+
+                this.filteredTasks = this.tasks.filter(task => {
+                    if (task.priority < priorityMin || task.priority > priorityMax) return false;
+                    if (task.effort < effortMin || task.effort > effortMax) return false;
+                    if (selectedTag && !task.tags.includes(selectedTag)) return false;
+                    
+                    // Search filter
+                    if (searchTerm) {
+                        const titleMatch = task.title.toLowerCase().includes(searchTerm);
+                        const descriptionMatch = task.description.toLowerCase().includes(searchTerm);
+                        if (!titleMatch && !descriptionMatch) return false;
+                    }
+                    
+                    return true;
+                });
+
+                // Sort by priority (ascending), then effort (ascending)
+                this.filteredTasks.sort((a, b) => {
+                    if (a.priority !== b.priority) return a.priority - b.priority;
+                    return a.effort - b.effort;
+                });
+
+                this.renderTasks();
+                this.updateStats();
+            }
+
+            renderTasks() {
+                const taskList = document.getElementById('taskList');
+                const hideDescriptions = document.getElementById('hideDescriptions').checked;
+                
+                taskList.innerHTML = '';
+                
+                this.filteredTasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = 'task-item';
+                    
+                    const priorityClass = `p${task.priority}`;
+                    const tagsHtml = task.tags.map(tag => `<span class="badge tag-badge">${tag}</span>`).join('');
+                    
+                    const descriptionHtml = hideDescriptions ? '' : 
+                        `<div class="task-description">${marked.parse(task.description)}</div>`;
+                    
+                    taskElement.innerHTML = `
+                        <div class="task-header">
+                            <h2 class="task-title">${this.escapeHtml(task.title)}</h2>
+                            <div class="task-meta">
+                                <span class="badge priority-badge ${priorityClass}">P${task.priority}</span>
+                                <span class="badge effort-badge">E${task.effort}</span>
+                                ${tagsHtml}
+                            </div>
+                        </div>
+                        ${descriptionHtml}
+                    `;
+                    
+                    taskList.appendChild(taskElement);
+                });
+            }
+
+            toggleDescriptions() {
+                this.renderTasks();
+            }
+
+            updateStats() {
+                const total = this.tasks.length;
+                const filtered = this.filteredTasks.length;
+                document.getElementById('taskCount').textContent = 
+                    `Showing ${filtered} of ${total} tasks`;
+            }
+
+            showError(message) {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('hidden');
+            }
+
+            updateFileUrl(fileUrl) {
+                const fileUrlDiv = document.getElementById('fileUrl');
+                fileUrlDiv.textContent = `Viewing: ${fileUrl}`;
+            }
+
+            updatePageTitle(title) {
+                document.querySelector('h1').textContent = title;
+                document.title = title;
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize the task viewer when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new TaskViewer();
+        });
+    </script>
+</body>
+</html>
