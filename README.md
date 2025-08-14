@@ -14,7 +14,7 @@ GitHub Issues is a great way to <i>view</i> issues, and a great way to <i>collab
 
 ### Local testing
 
-1. Start a local web server in the parent directory:
+1. Start a local web server in the repo root:
    ```bash
    cd ~/git/task-viewer
    python -m http.server 8000
