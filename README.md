@@ -42,9 +42,9 @@ For example:
 
 - **Filtering**: Filter by priority range (P0-P4), effort range (E0-E4), and tags
 - **Sorting**: Automatically sorts by priority (ascending), then effort (ascending)
-- **Markdown Rendering**: Full markdown support in task descriptions
-- **Toggle Descriptions**: Option to hide descriptions for a compact view
-- **Responsive Design**: Works on desktop and mobile devices
+- **Markdown rendering**: Full markdown support in task descriptions
+- **Toggle descriptions**: Option to hide descriptions for a compact view
+- **Responsive design**: Works on desktop and mobile devices
 
 ## File format
 

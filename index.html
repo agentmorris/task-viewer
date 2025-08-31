@@ -583,7 +583,7 @@
                             tags.push(tagMatch[1]);
                         }
                         inDescription = false;
-                    } else if (inDescription && trimmedLine) {
+                    } else if (inDescription) {
                         descriptionLines.push(line);
                     } else if (!inDescription && trimmedLine === '') {
                         // Empty line after metadata, continue

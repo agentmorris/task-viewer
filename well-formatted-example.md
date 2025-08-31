@@ -22,6 +22,8 @@ It can include **multiple lines**.
 
 The thing is **broken**!  Fix it.
 
+Issues can also have multiple lines.
+
 P0
 
 E2
