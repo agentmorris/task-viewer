@@ -25,6 +25,15 @@ GitHub Issues is a great way to <i>view</i> issues, and a great way to <i>collab
    http://localhost:8000/?file=well-formatted-example.md
    ```
 
+Only the current directory is available via python -m http.server, so, note to self, I made a link called "link-to-megadetector", so I can view the MegaDetector TODO list locally by running:
+
+`python -m http.server 8000`
+
+...then visiting:
+
+<http://localhost:8000/?file=link-to-megadetector/TODO.md>
+
+
 ### Production use with GitHub
 
 Use the raw GitHub URL as the file parameter:
