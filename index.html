@@ -127,6 +127,42 @@
             font-weight: 600;
             margin: 0;
             color: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .permalink-icon {
+            opacity: 0;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: opacity 0.2s, color 0.2s;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .task-item:hover .permalink-icon {
+            opacity: 1;
+        }
+
+        .permalink-icon:hover {
+            color: var(--primary-blue);
+        }
+
+        .task-item.highlighted {
+            background: #fff8dc;
+            border-color: #fbbf24;
+            animation: highlight-fade 2s ease-in-out;
+        }
+
+        @keyframes highlight-fade {
+            0% {
+                background: #fef3c7;
+            }
+            100% {
+                background: #ffffff;
+            }
         }
 
         .task-meta {
@@ -563,19 +599,23 @@
                 const lines = content.trim().split('\n');
                 let priority = null;
                 let effort = null;
+                let sortWeight = 0; // Default sort weight
                 const tags = [];
                 let descriptionLines = [];
                 let inDescription = true;
                 const issues = [];
-                
+
                 for (const line of lines) {
                     const trimmedLine = line.trim();
-                    
+
                     if (trimmedLine.match(/^P[0-4]$/)) {
                         priority = parseInt(trimmedLine.substring(1));
                         inDescription = false;
                     } else if (trimmedLine.match(/^E[0-4]$/)) {
                         effort = parseInt(trimmedLine.substring(1));
+                        inDescription = false;
+                    } else if (trimmedLine.match(/^S-?\d+$/)) {
+                        sortWeight = parseInt(trimmedLine.substring(1));
                         inDescription = false;
                     } else if (trimmedLine.match(/^![a-zA-Z0-9\-_\[\]]+$/)) {
                         const tagMatch = trimmedLine.match(/^!([a-zA-Z0-9\-_]+)/);
@@ -590,7 +630,7 @@
                         continue;
                     }
                 }
-                
+
                 // Check for missing required fields
                 if (priority === null) {
                     issues.push('Missing priority (P[0-4])');
@@ -601,26 +641,27 @@
                 if (tags.length === 0) {
                     issues.push('Missing at least one tag (!tag-name)');
                 }
-                
+
                 // Return both the task (if valid) and any issues
                 const result = {
                     task: null,
                     issues: issues
                 };
-                
+
                 if (issues.length === 0) {
                     result.task = {
                         title,
                         description: descriptionLines.join('\n').trim(),
                         priority,
                         effort,
+                        sortWeight,
                         tags,
                         firstTag: tags[0] || ''
                     };
                 } else {
                     console.warn(`Task "${title}" has parsing issues:`, issues);
                 }
-                
+
                 return result;
             }
 
@@ -662,35 +703,44 @@
                     return true;
                 });
 
-                // Sort by priority (ascending), then effort (ascending)
+                // Sort by priority (ascending), then effort (ascending), then sortWeight (descending)
                 this.filteredTasks.sort((a, b) => {
                     if (a.priority !== b.priority) return a.priority - b.priority;
-                    return a.effort - b.effort;
+                    if (a.effort !== b.effort) return a.effort - b.effort;
+                    return b.sortWeight - a.sortWeight; // Higher sort weight first within same priority+effort
                 });
 
                 this.renderTasks();
                 this.updateStats();
+                this.scrollToItem();
             }
 
             renderTasks() {
                 const taskList = document.getElementById('taskList');
                 const hideDescriptions = document.getElementById('hideDescriptions').checked;
-                
+
                 taskList.innerHTML = '';
-                
+
                 this.filteredTasks.forEach(task => {
                     const taskElement = document.createElement('div');
                     taskElement.className = 'task-item';
-                    
+
+                    // Generate slug and set as ID
+                    const slug = this.generateSlug(task.title);
+                    taskElement.id = slug;
+
                     const priorityClass = `p${task.priority}`;
                     const tagsHtml = task.tags.map(tag => `<span class="badge tag-badge">${tag}</span>`).join('');
-                    
-                    const descriptionHtml = hideDescriptions ? '' : 
+
+                    const descriptionHtml = hideDescriptions ? '' :
                         `<div class="task-description">${marked.parse(task.description)}</div>`;
-                    
+
                     taskElement.innerHTML = `
                         <div class="task-header">
-                            <h2 class="task-title">${this.escapeHtml(task.title)}</h2>
+                            <h2 class="task-title">
+                                ${this.escapeHtml(task.title)}
+                                <span class="permalink-icon" title="Copy permalink">🔗</span>
+                            </h2>
                             <div class="task-meta">
                                 <span class="badge priority-badge ${priorityClass}">P${task.priority}</span>
                                 <span class="badge effort-badge">E${task.effort}</span>
@@ -699,7 +749,11 @@
                         </div>
                         ${descriptionHtml}
                     `;
-                    
+
+                    // Add click handler for permalink icon
+                    const permalinkIcon = taskElement.querySelector('.permalink-icon');
+                    permalinkIcon.addEventListener('click', (e) => this.copyPermalink(slug, e));
+
                     taskList.appendChild(taskElement);
                 });
             }
@@ -770,6 +824,66 @@
                 const div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
+            }
+
+            generateSlug(text) {
+                return text
+                    .toLowerCase()
+                    .replace(/[^\w\s-]/g, '') // Remove special characters
+                    .replace(/\s+/g, '-')      // Replace spaces with hyphens
+                    .replace(/-+/g, '-')       // Replace multiple hyphens with single hyphen
+                    .replace(/^-+|-+$/g, '');  // Remove leading/trailing hyphens
+            }
+
+            getPermalink(slug) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const fileUrl = urlParams.get('file');
+                const baseUrl = window.location.origin + window.location.pathname;
+                return `${baseUrl}?file=${encodeURIComponent(fileUrl)}&item=${encodeURIComponent(slug)}`;
+            }
+
+            copyPermalink(slug, event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const permalink = this.getPermalink(slug);
+
+                navigator.clipboard.writeText(permalink).then(() => {
+                    // Visual feedback - could add a tooltip here later
+                    const icon = event.target;
+                    const originalText = icon.textContent;
+                    icon.textContent = '✓';
+                    icon.style.color = 'var(--success-green)';
+
+                    setTimeout(() => {
+                        icon.textContent = originalText;
+                        icon.style.color = '';
+                    }, 1000);
+                }).catch(err => {
+                    console.error('Failed to copy permalink:', err);
+                    alert('Failed to copy permalink. Please try again.');
+                });
+            }
+
+            scrollToItem() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const itemSlug = urlParams.get('item');
+
+                if (!itemSlug) return;
+
+                // Wait a bit for rendering to complete
+                setTimeout(() => {
+                    const element = document.getElementById(itemSlug);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        element.classList.add('highlighted');
+
+                        // Remove highlight after animation
+                        setTimeout(() => {
+                            element.classList.remove('highlighted');
+                        }, 2000);
+                    }
+                }, 100);
             }
         }
 

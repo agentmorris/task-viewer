@@ -66,6 +66,8 @@ The tool expects a markdown file with:
    - Priority: `P[0-4]` on its own line
    - Effort: `E[0-4]` on its own line  
    - At least one tag: `!tag-name`
+4. Optional task items:
+   - Sort weight: `S[N]` on its own line.  This controls sort order within a priority/effort group.  Default sort weight is 0.  Negative sort weights are allowed.  Higher sort weights will appear first.
 
 ## Dependencies
 
