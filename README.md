@@ -1,10 +1,8 @@
-# Task Viewer
+# Markdown Task Viewer
 
 A web-based interface for visualizing tasks in a structured markdown format.
 
 ## Why did I make this? 
-
-...or rather, why did AI make this for me?
 
 GitHub Issues is a great way to <i>view</i> issues, and a great way to <i>collaborate on issues that are actively being worked on</i>, but I don't like using GitHub Issues as a primary source of truth for open issues: I find it very cumbersome to edit, and also ironically changes you make to issues aren't tracked in git, which I find annoying.  So I wanted the convenience of a simple markdown file for tracking issues that aren't being actively worked on, with the visualization/sorting/filtering capabilities that GitHub Issues gives you.  So I made this tool, primarily to manage the [issue list for the MegaDetector repo](https://dmorris.net/task-viewer/?file=https://raw.githubusercontent.com/agentmorris/MegaDetector/refs/heads/main/TODO.md
 ).
